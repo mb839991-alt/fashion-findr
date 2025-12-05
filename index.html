@@ -13,7 +13,103 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand">
-        <a href="#" class="logo">YourStyle<span>Hub</span></a>
+        <a href="#" class="logo">YourStyle<span>Hub</span></a>/*
+Complete Responsive Fashion-Findr React + Tailwind Project
+
+Instructions:
+1. Run:
+   npm create vite@latest fashion-findr-react --template react
+   cd fashion-findr-react
+2. Install Tailwind:
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+3. Replace src/ with provided src/ components and files.
+4. Replace tailwind.config.js with provided config.
+5. npm install
+6. npm run dev
+
+Components: Header.jsx, Hero.jsx, Filters.jsx, ProductCard.jsx, ProductGrid.jsx, Footer.jsx, App.jsx, main.jsx
+*/
+
+// tailwind.config.js
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+// src/main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// src/index.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f7f7f9;
+}
+
+// src/App.jsx
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header.jsx';
+import Hero from './components/Hero.jsx';
+import Filters from './components/Filters.jsx';
+import ProductGrid from './components/ProductGrid.jsx';
+import Footer from './components/Footer.jsx';
+
+const App = () => {
+  const products = Array.from({length:36}).map((_,i)=>({
+    id:i+1,
+    title:['Leather Jacket','Wool Coat','Running Shoes','Satin Dress','Denim Jacket','Loafers'][i%6]+' '+(i+1),
+    brand:['Zara','COS','H&M','Arket','Mango','Uniqlo'][i%6],
+    price:(20 + (i%12)*15 + (i%5)).toFixed(2),
+    image:`https://via.placeholder.com/640x800?text=Item+${i+1}`,
+    category:['Coats','Shoes','Accessories','Home'][i%4]
+  }));
+
+  const [state, setState] = useState({query:'', maxPrice:1000, category:'', brand:'', page:1, perPage:12});
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  useEffect(()=>{
+    let filtered = products.filter(p=>{
+      const q = state.query.trim().toLowerCase();
+      if(q && !(p.title.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))) return false;
+      if(state.category && p.category !== state.category) return false;
+      if(state.brand && !p.brand.toLowerCase().includes(state.brand.toLowerCase())) return false;
+      if(Number(p.price) > state.maxPrice) return false;
+      return true;
+    });
+    setFilteredProducts(filtered);
+  },[state, products]);
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <Hero state={state} setState={setState} />
+      <div className="container mx-auto flex flex-col md:flex-row mt-6 gap-6">
+        <Filters state={state} setState={setState} />
+        <ProductGrid products={filteredProducts} state={state} setState={setState} />
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default App;
+
       </div>
       <nav class="nav-desktop">
         <a href="#">Women</a>
