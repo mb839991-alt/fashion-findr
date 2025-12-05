@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YourStyleHub — Discover & Shop</title>
+  <meta name="description" content="Discover fashion & home picks — search, compare, and save favorites." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <a href="#" class="logo">YourStyle<span>Hub</span></a>
+      </div>
+      <nav class="nav-desktop">
+        <a href="#">Women</a>
+        <a href="#">Men</a>
+        <a href="#">Home</a>
+        <a href="#">Brands</a>
+      </nav>
+      <div class="actions">
+        <button class="icon-btn" id="favoritesBtn" aria-label="Favorites">♡</button>
+        <button class="icon-btn" id="accountBtn" aria-label="Account">👤</button>
+        <button class="hamburger" id="mobileMenuBtn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <div class="hero">
+      <div class="container hero-inner">
+        <h1>Find the styles you love — all in one place</h1>
+        <p>Search thousands of products across top stores.</p>
+        <div class="search-bar">
+          <input id="searchInput" type="search" placeholder="Search for brands, items or categories — e.g. 'leather jacket'">
+          <button id="searchBtn">Search</button>
+        </div>
+        <div class="hero-filters">
+          <a href="#" class="chip">New arrivals</a>
+          <a href="#" class="chip">Sale</a>
+          <a href="#" class="chip">Sustainable</a>
+          <a href="#" class="chip">Under £50</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-grid">
+    <aside class="filters" id="filtersPanel">
+      <h3>Filters</h3>
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="filterCategory">
+          <option value="">All</option>
+          <option>Coats</option>
+          <option>Shoes</option>
+          <option>Accessories</option>
+          <option>Home</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Price</label>
+        <input type="range" id="priceRange" min="0" max="1000" value="400">
+        <div class="muted">Up to £<span id="priceVal">400</span></div>
+      </div>
+      <div class="filter-group">
+        <label>Brand</label>
+        <input id="brandInput" placeholder="Search brand">
+      </div>
+      <button id="applyFilters">Apply</button>
+    </aside>
+
+    <section class="content">
+      <div class="categories-row" aria-hidden="false">
+        <a class="category-card" href="#"><img src="https://via.placeholder.com/160x100?text=Coats" alt=""><span>Coats</span></a>
+        <a class="category-card" href="#"><img src="https://via.placeholder.com/160x100?text=Shoes" alt=""><span>Shoes</span></a>
+        <a class="category-card" href="#"><img src="https://via.placeholder.com/160x100?text=Accessories" alt=""><span>Accessories</span></a>
+        <a class="category-card" href="#"><img src="https://via.placeholder.com/160x100?text=Home" alt=""><span>Home</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="results-info"><strong id="resultsCount">24</strong> results</div>
+        <div class="sort">
+          <label>Sort</label>
+          <select id="sortSelect">
+            <option value="popular">Popular</option>
+            <option value="price_low">Price: Low → High</option>
+            <option value="price_high">Price: High → Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="product-grid" id="productGrid">
+        <!-- Product cards inserted here -->
+      </div>
+
+      <div class="pager">
+        <button id="prevPage">‹ Prev</button>
+        <button id="nextPage">Next ›</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>© <span id="year"></span> YourStyleHub</div>
+      <div class="footer-links">
+        <a href="#">About</a>
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Simple product data for demo; replace with your backend or CMS
+    const products = Array.from({length: 24}).map((_,i)=>({
+      id: i+1,
+      title: 'Product ' + (i+1),
+      brand: ['Zara','COS','H&M','Arket'][i%4],
+      price: (25 + i*5).toFixed(2),
+      image: 'https://via.placeholder.com/320x360?text=Item+' + (i+1),
+      category: ['Coats','Shoes','Accessories','Home'][i%4],
+    }));
+
+    const productGrid = document.getElementById('productGrid');
+    const resultsCount = document.getElementById('resultsCount');
+    const priceVal = document.getElementById('priceVal');
+    const priceRange = document.getElementById('priceRange');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const filtersPanel = document.getElementById('filtersPanel');
+
+    let state = {page:1, perPage:12, query:'', maxPrice: Number(priceRange.value), category:''};
+
+    function renderProducts(){
+      const q = state.query.trim().toLowerCase();
+      let filtered = products.filter(p=>{
+        if (q && !(p.title.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))) return false;
+        if (state.category && p.category !== state.category) return false;
+        if (Number(p.price) > state.maxPrice) return false;
+        return true;
+      });
+      resultsCount.textContent = filtered.length;
+      const start = (state.page-1)*state.perPage;
+      const pageItems = filtered.slice(start, start + state.perPage);
+      productGrid.innerHTML = pageItems.map(p=>`
+        <article class="card">
+          <img src="${p.image}" alt="${p.title}">
+          <div class="card-body">
+            <div class="card-brand">${p.brand}</div>
+            <h4 class="card-title">${p.title}</h4>
+            <div class="card-meta">£${p.price}</div>
+            <div class="card-actions">
+              <button class="btn small">View</button>
+              <button class="btn ghost small">Save</button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Events
+    priceRange.addEventListener('input', (e)=>{ priceVal.textContent = e.target.value; state.maxPrice = Number(e.target.value); renderProducts(); });
+    searchBtn.addEventListener('click', ()=>{ state.query = searchInput.value; state.page = 1; renderProducts(); });
+    searchInput.addEventListener('keyup', (e)=>{ if (e.key==='Enter'){ state.query = searchInput.value; state.page=1; renderProducts(); }});
+    document.getElementById('applyFilters').addEventListener('click', ()=>{
+      state.category = document.getElementById('filterCategory').value;
+      state.page =1; renderProducts();
+    });
+
+    document.getElementById('nextPage').addEventListener('click', ()=>{ state.page++; renderProducts(); });
+    document.getElementById('prevPage').addEventListener('click', ()=>{ if(state.page>1) state.page--; renderProducts(); });
+
+    mobileMenuBtn.addEventListener('click', ()=>{ filtersPanel.classList.toggle('open'); });
+
+    // init
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderProducts();
+  </script>
+</body>
+</html>
